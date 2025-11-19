@@ -1,24 +1,27 @@
 name: Super-Linter
 
-
 on: push
 
-permissions:
-  contents: read
-  statuses: write  
 jobs:
   super-lint:
-    name: Lint code base
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      statuses: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-  
+
       - name: Run Super-Linter
-        uses: github/super-linter@v6
+        uses: github/super-linter/slim@v6
         env:
-          DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: true
+
+          # 🟦 Enable full error output
           LOG_LEVEL: DEBUG
+          ACTIONS_RUNNER_DEBUG: true
+          ACTIONS_STEP_DEBUG: true
+          PRINT_ALPACA: true

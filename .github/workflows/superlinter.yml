@@ -21,6 +21,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: true
           SAVE_SUPER_LINTER_OUTPUT: true   # enables error logs to be saved
+          OUTPUT_DETAILS: detailed   # <-- REQUIRED to save logs
 
       - name: Print only linter errors
         if: failure()     # run only if Super-Linter fails

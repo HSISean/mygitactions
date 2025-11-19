@@ -1,8 +1,8 @@
 def hello():
-  print("hey")
+    print("hey")
 
 
 def buy():
-  print("bye")
+    print("bye")
   
 print(hello())

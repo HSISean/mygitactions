@@ -2,6 +2,10 @@ name: Super-Linter
 
 on: push
 
+permissions:
+  contents: read
+  statuses: write
+
 jobs:
   build:
     runs-on: ubuntu-latest

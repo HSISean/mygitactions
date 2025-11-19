@@ -3,34 +3,25 @@ name: Super-Linter
 on: push
 
 jobs:
-  super-lint:
+  build:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      statuses: write
-
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Run Super-Linter
-        id: lint
-        uses: github/super-linter/slim@v6
+      - name: Lint Code Base
+        uses: super-linter/super-linter@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VALIDATE_ALL_CODEBASE: true
-          SAVE_SUPER_LINTER_OUTPUT: true   # enables error logs to be saved
-          OUTPUT_DETAILS: detailed   # <-- REQUIRED to save logs
+          # ... your other env vars ...
+          CREATE_LOG_FILE: true       # <--- Turn this on
+          LOG_FILE: linter.log        # <--- Name the file
 
-      - name: Print only linter errors
-        if: failure()     # run only if Super-Linter fails
-        run: |
-          echo "================ LINTER ERRORS ================"
-          if [ -d "super-linter-output/super-linter" ]; then
-            # Print ONLY lines that contain actual linter error details
-            grep -R "error:" -i super-linter-output/super-linter || echo "No detailed error messages found."
-          else
-            echo "No output directory found."
-          fi
-          echo "==============================================="
+      # Add this step to upload the log file so you can download it
+      - name: Upload Linter Artifact
+        if: always()                  # Run this even if linting fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: linter-log
+          path: linter.log

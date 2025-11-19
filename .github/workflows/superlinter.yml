@@ -5,8 +5,7 @@ on: push
 
 permissions:
   contents: read
-  statuses: write
-  
+  statuses: write  
 jobs:
   super-lint:
     name: Lint code base
@@ -21,3 +20,13 @@ jobs:
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          CREATE_LOG_FILE: true       # <--- Turn this on
+          LOG_FILE: linter.log        # <--- Name the file
+
+      # Add this step to upload the log file so you can download it
+      - name: Upload Linter Artifact
+        if: always()                  # Run this even if linting fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: linter-log
+          path: linter.log

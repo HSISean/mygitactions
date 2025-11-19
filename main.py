@@ -4,4 +4,6 @@ def hello():
 
 def buy():
     print("bye")
+
+
 print(hello())

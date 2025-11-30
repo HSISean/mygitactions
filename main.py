@@ -11,4 +11,6 @@ def bye():
 def lets_got():
         print('na')
 
+
 print(hello())
+print(lets_got())

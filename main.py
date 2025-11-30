@@ -9,7 +9,7 @@ def bye():
     print("bye")
 
 def lets_got():
-    print('na')
+    print("na")
 
 
 print(hello())

@@ -1,4 +1,4 @@
-name: Super-Linter
+name: Code Checker
 
 on: 
   push:
@@ -29,9 +29,11 @@ jobs:
         uses: super-linter/super-linter@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # ... your other env vars ...
+
           CREATE_LOG_FILE: true       # <--- Turn this on
           LOG_FILE: linter.log        # <--- Name the file
+      
+      -
 
       # Add this step to upload the log file so you can download it
       - name: Upload Linter Artifact

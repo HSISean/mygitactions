@@ -40,6 +40,26 @@ jobs:
         with:
           name: linter-log
           path: linter.log
+      - name: Python Setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Run unit test
+        run: |
+          pytest --junitxml=results.xml
+      - name: Add test summary
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "All test have been executed" >> $GITHUB_STEP_SUMMARY
+     
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: results.xml
 
 
   security-check:

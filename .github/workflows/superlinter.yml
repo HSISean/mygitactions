@@ -33,9 +33,11 @@ jobs:
           echo "failed_tests=1" >> "$GITHUB_OUTPUT"
       - name: Write summary
         run: |
-          echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- Passed: ${{ steps.stats.outputs.passed_tests }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Failed: ${{ steps.stats.outputs.failed_tests }}" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
+            echo "- Passed: ${{ steps.stats.outputs.passed_tests }}"
+            echo "- Failed: ${{ steps.stats.outputs.failed_tests }}"
+          }  >> $GITHUB_STEP_SUMMARY
       - name: Upload Linter Artifact
         if: always()
         uses: actions/upload-artifact@v4

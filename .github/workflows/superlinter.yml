@@ -72,6 +72,18 @@ jobs:
           name: test-results
           path: results.xml
 
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v1
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.projectKey=myapp
+            -Dsonar.sources=src
+            -Dsonar.tests=tests
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+
+      - name: Check Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1
 
   security-check:
     runs-on: ubuntu-latest

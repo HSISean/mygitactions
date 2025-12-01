@@ -52,8 +52,8 @@ jobs:
           pytest --junitxml=results.xml
       - name: Add test summary
         run: |
-          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "All test have been executed" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "All test have been executed" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         with:
@@ -75,7 +75,7 @@ jobs:
           sudo apt-get install trivy -y
 
       - name: Trivy FS Scan
-        run: trivy fs --format table -o fs-report.json
+        run: trivy fs --format json -o fs-report.json
 
       - name: Gitleaks Scan
         run: sudo apt install gitleaks -y

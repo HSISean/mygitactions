@@ -36,14 +36,14 @@ jobs:
       - name: Generate statistics
         id: stats
         run: |
-          echo "passed_tests=42" >> $GITHUB_OUTPUT
-          echo "failed_tests=1" >> $GITHUB_OUTPUT
+          echo "passed_tests=42" >> "$GITHUB_OUTPUT"
+          echo "failed_tests=1" >> "$GITHUB_OUTPUT"
 
       - name: Write summary
         run: |
-          echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- Passed: ${{ steps.stats.outputs.passed_tests }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Failed: ${{ steps.stats.outputs.failed_tests }}" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Passed: ${{ steps.stats.outputs.passed_tests }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Failed: ${{ steps.stats.outputs.failed_tests }}" >> "$GITHUB_STEP_SUMMARY"
 
       # Add this step to upload the log file so you can download it
       - name: Upload Linter Artifact

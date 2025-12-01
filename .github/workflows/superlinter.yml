@@ -41,9 +41,11 @@ jobs:
 
       - name: Write summary
         run: |
-          echo "## Test Summary" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Passed: ${{ steps.stats.outputs.passed_tests }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Failed: ${{ steps.stats.outputs.failed_tests }}" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Test Summary" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Passed: ${{ steps.stats.outputs.passed_tests }}" 
+            echo "- Failed: ${{ steps.stats.outputs.failed_tests }}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # Add this step to upload the log file so you can download it
       - name: Upload Linter Artifact

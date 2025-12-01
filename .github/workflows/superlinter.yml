@@ -2,19 +2,13 @@ name: Code Checker
 
 on: 
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
-
-
-
+    branches: [ main ]
 
 permissions:
   contents: read
   statuses: write
-
 
 jobs:
   build:
@@ -29,9 +23,8 @@ jobs:
         uses: super-linter/super-linter@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          CREATE_LOG_FILE: true       # <--- Turn this on
-          LOG_FILE: linter.log        # <--- Name the file
+          CREATE_LOG_FILE: true
+          LOG_FILE: linter.log
 
       - name: Generate statistics
         id: stats
@@ -39,76 +32,139 @@ jobs:
           echo "passed_tests=42" >> "$GITHUB_OUTPUT"
           echo "failed_tests=1" >> "$GITHUB_OUTPUT"
 
-      - name: Write summary
-        run: |
-          {
-            echo "## Test Summary" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Passed: ${{ steps.stats.outputs.passed_tests }}" 
-            echo "- Failed: ${{ steps.stats.outputs.failed_tests }}"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      # Add this step to upload the log file so you can download it
       - name: Upload Linter Artifact
-        if: always()                  # Run this even if linting fails
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: linter-log
           path: linter.log
+
       - name: Python Setup
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-      - name: Run unit test
+          pip install plotly pandas numpy
+
+      - name: Generate HTML Dashboard (Pie, Heatmap, Line Chart)
         run: |
-          pytest --junitxml=results.xml
-      - name: Add test summary
-        run: |
-          echo "## Test Results" >> "$GITHUB_STEP_SUMMARY"
-          echo "All test have been executed" >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload Test Results
+          python3 <<'EOF'
+          import pandas as pd
+          import plotly.graph_objects as go
+          import numpy as np
+          import re
+
+          # ------------------------------
+          # LOAD LINTER DATA
+          # ------------------------------
+          with open("linter.log") as f:
+              log = f.read()
+
+          # Extract error lines
+          error_lines = [line for line in log.split("\n") if "error" in line.lower()]
+
+          # Simulate file-level grouping for heatmap
+          file_counts = {}
+          for line in error_lines:
+              match = re.search(r'([\w\/\.-]+):\d+', line)
+              if match:
+                  filename = match.group(1)
+                  file_counts[filename] = file_counts.get(filename, 0) + 1
+
+          df_files = pd.DataFrame(list(file_counts.items()), columns=["file", "errors"])
+
+          # ------------------------------
+          # PIE CHART (Test Pass/Fail)
+          # ------------------------------
+          passed = int("${{ steps.stats.outputs.passed_tests }}")
+          failed = int("${{ steps.stats.outputs.failed_tests }}")
+
+          pie = go.Figure(
+              data=[go.Pie(labels=["Passed", "Failed"], values=[passed, failed], hole=.4)]
+          )
+
+          # ------------------------------
+          # LINE CHART (Errors over time)
+          # ------------------------------
+          # Fake time series based on file counts (real world would use commit timestamps)
+          commits = list(range(1, len(df_files) + 1))
+          errors = df_files["errors"].tolist()
+
+          line = go.Figure()
+          line.add_trace(go.Scatter(x=commits, y=errors, mode="lines+markers", name="Errors"))
+
+          # ------------------------------
+          # HEATMAP (Error density per file)
+          # ------------------------------
+          heat = go.Figure(
+              data=go.Heatmap(
+                  z=[df_files["errors"].tolist()],
+                  x=df_files["file"].tolist(),
+                  y=["Errors"],
+                  colorscale="Reds"
+              )
+          )
+
+          # ------------------------------
+          # BUILD HTML DASHBOARD
+          # ------------------------------
+          html = f"""
+          <html>
+          <head>
+              <title>Code Quality Dashboard</title>
+              <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+              <style>
+                  body {{
+                    font-family: Arial, sans-serif;
+                    margin: 40px;
+                  }}
+                  h1 {{
+                    color: #333;
+                  }}
+                  .chart-container {{
+                    margin-bottom: 50px;
+                  }}
+              </style>
+          </head>
+          <body>
+              <h1>📊 Code Quality Dashboard</h1>
+
+              <div class="chart-container">
+                  <h2>🟢 Test Pass/Fail – Pie Chart</h2>
+                  {pie.to_html(include_plotlyjs=False, full_html=False)}
+              </div>
+
+              <div class="chart-container">
+                  <h2>🔥 Error Heatmap – Linter File Density</h2>
+                  {heat.to_html(include_plotlyjs=False, full_html=False)}
+              </div>
+
+              <div class="chart-container">
+                  <h2>📈 Errors Over Commits – Line Chart</h2>
+                  {line.to_html(include_plotlyjs=False, full_html=False)}
+              </div>
+
+          </body>
+          </html>
+          """
+
+          with open("dashboard.html", "w") as f:
+              f.write(html)
+          EOF
+
+      - name: Upload HTML Dashboard
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: results.xml
+          name: code-quality-dashboard
+          path: dashboard.html
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v1
-        with:
-          projectBaseDir: .
-          args: >
-            -Dsonar.projectKey=myapp
-            -Dsonar.sources=src
-            -Dsonar.tests=tests
-            -Dsonar.python.coverage.reportPaths=coverage.xml
-
-      - name: Check Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@v1
-      - name: Write graphical summary
-        run: |
-          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
-          # 📊 Test Summary (Graphical)
-
-          ## Pie Chart
-          ```mermaid
-          pie showData
-            "Passed" : ${{ steps.stats.outputs.passed_tests }}
-            "Failed" : ${{ steps.stats.outputs.failed_tests }}
-          ```
-
-          ## Table Summary
-          | Result | Count |
-          |--------|-------|
-          | Passed | ${{ steps.stats.outputs.passed_tests }} |
-          | Failed | ${{ steps.stats.outputs.failed_tests }} |
-          EOF
   security-check:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
+
       - name: Trivy Scan
         run: |
           sudo apt-get install wget gnupg

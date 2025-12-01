@@ -86,7 +86,24 @@ jobs:
 
       - name: Check Quality Gate
         uses: SonarSource/sonarqube-quality-gate-action@v1
+      - name: Write graphical summary
+        run: |
+          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
+          # 📊 Test Summary (Graphical)
 
+          ## Pie Chart
+          ```mermaid
+          pie showData
+            "Passed" : ${{ steps.stats.outputs.passed_tests }}
+            "Failed" : ${{ steps.stats.outputs.failed_tests }}
+          ```
+
+          ## Table Summary
+          | Result | Count |
+          |--------|-------|
+          | Passed | ${{ steps.stats.outputs.passed_tests }} |
+          | Failed | ${{ steps.stats.outputs.failed_tests }} |
+          EOF
   security-check:
     runs-on: ubuntu-latest
 

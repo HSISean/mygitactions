@@ -112,7 +112,6 @@ jobs:
                   colorscale="Reds"
               )
           )
-
           # ------------------------------
           # BUILD HTML DASHBOARD
           # ------------------------------
@@ -167,6 +166,7 @@ jobs:
           path: dashboard.html
 
   security-check:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
